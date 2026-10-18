@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Green Valley International School Timetable</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            /* Updated background properties */
+            background: url('Logo-copy.png');
+            background-size: 50%; /* Makes the image smaller - adjust percentage as needed */
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+        }
+        .sidebar {
+            width: 250px;
+            background-color: #2c3e50;
+            color: white;
+            padding: 20px;
+            height: 100%;
+            box-sizing: border-box;
+            position: fixed;
+            left: -220px; /* Hide most of the sidebar */
+            transition: left 0.3s ease;
+            z-index: 1000;
+        }
+
+        .sidebar:hover {
+            left: 0; /* Show full sidebar on hover */
+        }
+
+        .sidebar h1 {
+            font-size: 24px;
+            margin: 0;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #34495e;
+        }
+        .sidebar h2 {
+            font-size: 18px;
+            margin: 10px 0;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+        .sidebar h2:hover {
+            color: #3498db;
+        }
+        .main-content {
+            margin-left: 30px;
+            padding: 20px;
+            flex-grow: 1;
+            background-color: rgba(249, 249, 249, 0.9); /* Changed from solid to semi-transparent */
+            transition: margin-left 0.3s ease;
+        }
+
+        .sidebar:hover + .main-content {
+            margin-left: 250px;
+        }
+        h1 {
+            text-align: center;
+        }
+        .button-container {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            gap: 10px;
+        }
+        .button-container button {
+            padding: 10px;
+            font-size: 14px;
+            cursor: pointer;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            transition: opacity 0.3s ease;
+        }
+        .button-container button:hover {
+            background-color: #2980b9;
+        }
+        button:disabled {
+            cursor: not-allowed;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            background-color: white;
+        }
+        th, td {
+            padding: 12px;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .break-cell {
+            background-color: #e0e0e0;
+        }
+        select {
+            padding: 5px;
+            width: 100%;
+        }
+        .login-container {
+            max-width: 400px;
+            margin: 40px auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .login-btn {
+            width: 100%;
+            padding: 10px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .login-btn:hover {
+            background-color: #2980b9;
+        }
+    </style>
+</head>
+    <body>
+        <div class="sidebar">
+            <h1>Class</h1>
+            <h2 onclick="showPCMC()">XII PCMC</h2>
+            <h2 onclick="showPCMB()">XII PCMB</h2>
+            <h2 onclick="showTeachersLogin()">Teachers Login</h2>
+        </div>
+
+        <div class="main-content">
+            <h1>Green Valley International School Timetable</h1>
+
+            <!-- Teachers Login Section -->
+            <div id="teachers-login" style="display: none;">
+                <h2>Teachers Login</h2>
+                <div class="login-container">
+                    <form onsubmit="handleTeacherLogin(event)">
+                        <div class="form-group">
+                            <label for="teacher-id">Teacher ID:</label>
+                            <input type="text" id="teacher-id" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="teacher-password">Password:</label>
+                            <input type="password" id="teacher-password" required>
+                        </div>
+                        <button type="submit" class="login-btn">Login</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- PCMC Section -->
+            <div id="pcmc-timetable" style="display: none;">
+                <h2>PCMC Timetable</h2>
+                <div class="button-container">
+                    <button onclick="generateTimetable('pcmc')">Generate Timetable</button>
+                    <button onclick="substituteAbsentTeachers('pcmc')">Substitute Absent Teachers</button>
+                    <button onclick="markAbsentTeacher('pcmc')">Mark/Unmark Absent Teacher</button>
+                    <button onclick="finalizeTimetable('pcmc')" id="pcmc-finalize">Finalize Timetable</button>
+                </div>
+                <table id="pcmc-table">
+                    <thead>
+                        <tr>
+                            <th>Day/Time</th>
+                            <th>9:20 - 10:00</th>
+                            <th>10:00 - 10:40</th>
+                            <th>10:40 - 11:20</th>
+                            <th>11:20 - 11:30</th>
+                            <th>11:30 - 12:10</th>
+                            <th>12:10 - 12:50</th>
+                            <th>12:50 - 1:45</th>
+                            <th>1:45 - 2:25</th>
+                            <th>2:25 - 3:05</th>
+                            <th>3:05 - 3:45</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Monday</td><td></td><td></td><td></td><td class="break-cell">Break</td><td></td><td></td><td class="break-cell">Lunch</td><td></td><td></td><td></td></tr>
+                        <tr><td>Tuesday</td><td></td><td></td><td></td><td class="break-cell">Break</td><td></td><td></td><td class="break-cell">Lunch</td><td></td><td></td><td></td></tr>
+                        <tr><td>Wednesday</td><td></td><td></td><td></td><td class="break-cell">Break</td><td></td><td></td><td class="break-cell">Lunch</td><td></td><td></td><td></td></tr>
+                        <tr><td>Thursday</td><td></td><td></td><td></td><td class="break-cell">Break</td><td></td><td></td><td class="break-cell">Lunch</td><td></td><td></td><td></td></tr>
+                        <tr><td>Friday</td><td></td><td></td><td></td><td class="break-cell">Break</td><td></td><td></td><td class="break-cell">Lunch</td><td></td><td></td><td></td></tr>
+                        <tr><td>Saturday</td><td></td><td></td><td></td><td class="break-cell">Break</td><td></td><td></td><td class="break-cell">Lunch</td><td></td><td></td><td></td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- PCMB Section -->
+            <div id="pcmb-timetable" style="display: none;">
+                <h2>PCMB Timetable</h2>
+                <div class="button-container">
+                    <button onclick="generateTimetable('pcmb')">Generate Timetable</button>
+                    <button onclick="substituteAbsentTeachers('pcmb')">Substitute Absent Teachers</button>
+                    <button onclick="markAbsentTeacher('pcmb')">Mark/Unmark Absent Teacher</button>
+                    <button onclick="finalizeTimetable('pcmb')" id="pcmb-finalize">Finalize Timetable</button>
+                </div>
+                <table id="pcmb-table">
+                    <thead>
+                        <tr>
+                            <th>Day/Time</th>
+                            <th>9:20 - 10:00</th>
+                            <th>10:00 - 10:40</th>
+                            <th>10:40 - 11:20</th>
+                            <th>11:20 - 11:30</th>
+                            <th>11:30 - 12:10</th>
+                            <th>12:10 - 12:50</th>
+                            <th>12:50 - 1:45</th>
+                            <th>1:45 - 2:25</th>
+                            <th>2:25 - 3:05</th>
+                            <th>3:05 - 3:45</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Monday</td><td></td><td></td><td></td><td class="break-cell">Break</td><td></td><td></td><td class="break-cell">Lunch</td><td></td><td></td><td></td></tr>
+                        <tr><td>Tuesday</td><td></td><td></td><td></td><td class="break-cell">Break</td><td></td><td></td><td class="break-cell">Lunch</td><td></td><td></td><td></td></tr>
+                        <tr><td>Wednesday</td><td></td><td></td><td></td><td class="break-cell">Break</td><td></td><td></td><td class="break-cell">Lunch</td><td></td><td></td><td></td></tr>
+                        <tr><td>Thursday</td><td></td><td></td><td></td><td class="break-cell">Break</td><td></td><td></td><td class="break-cell">Lunch</td><td></td><td></td><td></td></tr>
+                        <tr><td>Friday</td><td></td><td></td><td></td><td class="break-cell">Break</td><td></td><td></td><td class="break-cell">Lunch</td><td></td><td></td><td></td></tr>
+                        <tr><td>Saturday</td><td></td><td></td><td></td><td class="break-cell">Break</td><td></td><td></td><td class="break-cell">Lunch</td><td></td><td></td><td></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <script>
+            const teacherCredentials = {
+                'Tanuja': 'gvisindia',
+                'Poornima': 'gvisindia',
+                'Prema': 'gvisindia',
+                'Pallavi': 'gvisindia',
+                'Vinayak': 'gvisindia',
+                'Hussain': 'gvisindia',
+                'Prajna': 'gvisindia',
+                'Dakshayani': 'gvisindia',
+                'Naina': 'gvisindia',
+                'Karthik': 'gvisindia'
+            };
+
+            const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+            const timeSlots = ["9:20 - 10:00", "10:00 - 10:40", "10:40 - 11:20", "11:20 - 11:30", "11:30 - 12:10", "12:10 - 12:50", "12:50 - 1:45", "1:45 - 2:25", "2:25 - 3:05", "3:05 - 3:45"];
+            const saturdayTimeSlots = timeSlots.slice(0, 7);
+
+            const subjectsTeachers = {
+                pcmc: {
+                    "Chemistry": "Tanuja",
+                    "Maths": "Prema",
+                    "Physics": "Poornima",
+                    "C.S": "Pallavi",
+                    "English": "Vinayak",
+                    "P.E": "Hussain"
+                },
+                pcmb: {
+                    "Chemistry": "Dakshayani",
+                    "Maths": "Naina",
+                    "Physics": "Prajna",
+                    "Biology": "Karthik",
+                    "English": "Vinayak",
+                    "P.E": "Hussain"
+                }
+            };
+
+            const pcmcData = {
+                teachers: {},
+                dailyAbsentTeachers: {},
+                timetable: [],
+                originalTimetable: [],
+                isFinalized: false
+            };
+
+            const pcmbData = {
+                teachers: {},
+                dailyAbsentTeachers: {},
+                timetable: [],
+                originalTimetable: [],
+                isFinalized: false
+            };
+
+            // Initialize teachers
+            for (let section in subjectsTeachers) {
+                for (let subject in subjectsTeachers[section]) {
+                    const teacherName = subjectsTeachers[section][subject];
+                    if (section === 'pcmc') {
+                        pcmcData.teachers[teacherName] = { name: teacherName };
+                    } else {
+                        pcmbData.teachers[teacherName] = { name: teacherName };
+                    }
+                }
+            }
+
+            function handleTeacherLogin(event) {
+                event.preventDefault();
+                const teacherId = document.getElementById('teacher-id').value;
+                const password = document.getElementById('teacher-password').value;
+
+                if (teacherCredentials[teacherId] && teacherCredentials[teacherId] === password) {
+                    const teacherTimetable = {
+                        name: teacherId,
+                        pcmcSchedule: pcmcData.timetable,
+                        pcmbSchedule: pcmbData.timetable
+                    };
+                    localStorage.setItem('currentTeacher', JSON.stringify(teacherTimetable));
+                    window.open('teacher_timetable.html', '_blank');
+                } else {
+                    alert('Invalid teacher ID or password. Please try again.');
+                }
+                event.target.reset();
+            }
+
+            function showPCMC() {
+                document.getElementById("pcmc-timetable").style.display = "block";
+                document.getElementById("pcmb-timetable").style.display = "none";
+                document.getElementById("teachers-login").style.display = "none";
+            }
+
+            function showPCMB() {
+                document.getElementById("pcmc-timetable").style.display = "none";
+                document.getElementById("pcmb-timetable").style.display = "block";
+                document.getElementById("teachers-login").style.display = "none";
+            }
+
+            function showTeachersLogin() {
+                document.getElementById("pcmc-timetable").style.display = "none";
+                document.getElementById("pcmb-timetable").style.display = "none";
+                document.getElementById("teachers-login").style.display = "block";
+            }
+
+            // Continue with next part...
+            function finalizeTimetable(section) {
+                const sectionData = section === 'pcmc' ? pcmcData : pcmbData;
+                const generateButton = document.querySelector(`#${section}-timetable .button-container button`);
+                const finalizeButton = document.getElementById(`${section}-finalize`);
+
+                if (confirm('Are you sure you want to finalize this timetable? You won\'t be able to generate a new one after finalizing.')) {
+                    sectionData.isFinalized = true;
+                    generateButton.disabled = true;
+                    generateButton.style.opacity = '0.5';
+                    finalizeButton.textContent = 'Timetable Finalized';
+                    finalizeButton.disabled = true;
+                    finalizeButton.style.opacity = '0.5';
+                }
+            }
+
+            function generateTimetable(section) {
+                const sectionData = section === 'pcmc' ? pcmcData : pcmbData;
+                const otherSectionData = section === 'pcmc' ? pcmbData : pcmcData;
+
+                if (sectionData.isFinalized) {
+                    alert('This timetable has been finalized and cannot be regenerated.');
+                    return;
+                }
+
+                // If this is PCMC (first section), generate shared periods
+                if (section === 'pcmc') {
+                    // Reset both timetables
+                    pcmcData.timetable = Array(6).fill().map(() => Array(10).fill(null));
+                    pcmbData.timetable = Array(6).fill().map(() => Array(10).fill(null));
+
+                    // Generate English periods (3 times a week)
+                    const englishDays = new Set();
+                    while (englishDays.size < 3) {
+                        const day = Math.floor(Math.random() * 5); // Monday to Friday
+                        if (englishDays.has(day)) continue;
+                        englishDays.add(day);
+                        // Set English for both sections at period 1
+                        pcmcData.timetable[day][1] = ["English", "Vinayak"];
+                        pcmbData.timetable[day][1] = ["English", "Vinayak"];
+                    }
+
+                    // Generate PE periods (2 days, last two periods)
+                    const peDays = new Set();
+                    while (peDays.size < 2) {
+                        const day = Math.floor(Math.random() * 5);
+                        if (!englishDays.has(day) && !peDays.has(day)) {
+                            peDays.add(day);
+                            // Set PE for both sections in last two periods
+                            pcmcData.timetable[day][8] = ["P.E", "Hussain"];
+                            pcmcData.timetable[day][9] = ["P.E", "Hussain"];
+                            pcmbData.timetable[day][8] = ["P.E", "Hussain"];
+                            pcmbData.timetable[day][9] = ["P.E", "Hussain"];
+                        }
+                    }
+                }
+
+                // Fill in the remaining periods for this section
+                const timetableTable = document.getElementById(`${section}-table`).getElementsByTagName('tbody')[0];
+
+                for (let day = 0; day < 6; day++) {
+                    const row = timetableTable.rows[day];
+                    const currentTimeSlots = day === 5 ? saturdayTimeSlots : timeSlots;
+                    if (!sectionData.timetable[day]) sectionData.timetable[day] = [];
+                    sectionData.originalTimetable[day] = [];
+                    const subjectCounts = {};
+
+                    for (let period = 0; period < currentTimeSlots.length; period++) {
+                        if (period === 3 || period === 6) continue;
+
+                        // Skip if period already assigned (English or PE)
+                        if (sectionData.timetable[day][period]) {
+                            const [subject, teacher] = sectionData.timetable[day][period];
+                            sectionData.originalTimetable[day][period] = [subject, teacher];
+                            const selectHTML = generateDropdownHTML(subject, teacher, section);
+                            row.cells[period + 1].innerHTML = selectHTML;
+                            continue;
+                        }
+
+                        // Generate new period for remaining slots
+                        const availableSubjects = Object.keys(subjectsTeachers[section])
+                            .filter(s => s !== "English" && s !== "P.E" && (!subjectCounts[s] || subjectCounts[s] < 2));
+
+                        let subject = availableSubjects.length > 0 
+                            ? availableSubjects[Math.floor(Math.random() * availableSubjects.length)]
+                            : Object.keys(subjectsTeachers[section])
+                                .filter(s => s !== "English" && s !== "P.E")[0];
+
+                        const teacher = subjectsTeachers[section][subject];
+                        subjectCounts[subject] = (subjectCounts[subject] || 0) + 1;
+
+                        sectionData.timetable[day][period] = [subject, teacher];
+                        sectionData.originalTimetable[day][period] = [subject, teacher];
+                        const selectHTML = generateDropdownHTML(subject, teacher, section);
+                        row.cells[period + 1].innerHTML = selectHTML;
+                    }
+                }
+            }
+
+
+
+            function generateDropdownHTML(subject, teacher, section) {
+                const options = Object.entries(subjectsTeachers[section]).map(([subj, teach]) => {
+                    return `<option value="${subj}-${teach}" ${subj === subject ? 'selected' : ''}>${subj} (${teach})</option>`;
+                }).join('');
+                return `<select onchange="updatePeriod(this, '${section}')">${options}</select>`;
+            }
+
+            // Continue with next part...
+            function markAbsentTeacher(section) {
+                const sectionData = section === 'pcmc' ? pcmcData : pcmbData;
+                const teacherNames = Object.keys(sectionData.teachers);
+                const teacher = prompt("Select Teacher to Mark/Unmark as Absent:\n" + teacherNames.join('\n'));
+
+                if (teacher) {
+                    const dayIndex = parseInt(prompt("Enter Day Index (0: Monday, 5: Saturday)"));
+                    if (dayIndex >= 0 && dayIndex < 6) {
+                        if (!sectionData.dailyAbsentTeachers[dayIndex]) {
+                            sectionData.dailyAbsentTeachers[dayIndex] = new Set();
+                        }
+                        if (sectionData.dailyAbsentTeachers[dayIndex].has(teacher)) {
+                            sectionData.dailyAbsentTeachers[dayIndex].delete(teacher);
+                            alert(`${teacher} is now marked as present on ${days[dayIndex]}`);
+                        } else {
+                            sectionData.dailyAbsentTeachers[dayIndex].add(teacher);
+                            alert(`${teacher} is marked as absent on ${days[dayIndex]}`);
+                        }
+                    }
+                }
+            }
+
+            function substituteAbsentTeachers(section) {
+                const sectionData = section === 'pcmc' ? pcmcData : pcmbData;
+                const timetableTable = document.getElementById(`${section}-table`).getElementsByTagName('tbody')[0];
+
+                for (let day = 0; day < 6; day++) {
+                    const row = timetableTable.rows[day];
+                    const currentTimeSlots = day === 5 ? saturdayTimeSlots : timeSlots;
+
+                    for (let period = 0; period < currentTimeSlots.length; period++) {
+                        const cell = row.cells[period + 1];
+                        if (!cell || period === 3 || period === 6) continue;
+
+                        const selectElement = cell.querySelector('select');
+                        if (!selectElement) continue;
+
+                        const [originalSubject, originalTeacher] = sectionData.originalTimetable[day][period] || [];
+
+                        if (!sectionData.dailyAbsentTeachers[day]?.has(originalTeacher)) {
+                            selectElement.innerHTML = generateDropdownHTML(originalSubject, originalTeacher, section);
+                            if (sectionData.timetable[day][period]) {
+                                sectionData.timetable[day][period] = {
+                                    subject: originalSubject,
+                                    teacher: originalTeacher,
+                                    isSubstitute: false,
+                                    originalTeacher: null
+                                };
+                            }
+                            continue;
+                        }
+
+                        if (sectionData.dailyAbsentTeachers[day]?.has(originalTeacher)) {
+                            const usedSubstitutes = new Set();
+                            const substitute = findSubstituteTeacher(day, usedSubstitutes, section);
+
+                            if (substitute) {
+                                selectElement.innerHTML = `<option value="${originalSubject}-${substitute}" selected>Sub: ${substitute}</option>`;
+                                sectionData.timetable[day][period] = {
+                                    subject: originalSubject,
+                                    teacher: substitute,
+                                    isSubstitute: true,
+                                    originalTeacher: originalTeacher
+                                };
+                                usedSubstitutes.add(substitute);
+                            } else {
+                                selectElement.innerHTML = `<option value="${originalSubject}-No Substitute" selected>${originalSubject} (No Substitute)</option>`;
+                                sectionData.timetable[day][period] = {
+                                    subject: originalSubject,
+                                    teacher: "No Substitute",
+                                    isSubstitute: true,
+                                    originalTeacher: originalTeacher
+                                };
+                            }
+                        }
+                    }
+                }
+            }
+
+            function findSubstituteTeacher(day, usedSubstitutes, section) {
+                const sectionData = section === 'pcmc' ? pcmcData : pcmbData;
+                const availableTeachers = Object.keys(sectionData.teachers).filter(
+                    teacher => !sectionData.dailyAbsentTeachers[day]?.has(teacher) && !usedSubstitutes.has(teacher)
+                );
+                return availableTeachers.length ? availableTeachers[Math.floor(Math.random() * availableTeachers.length)] : null;
+            }
+
+            function updatePeriod(selectElement, section) {
+                const sectionData = section === 'pcmc' ? pcmcData : pcmbData;
+                const [subject, teacher] = selectElement.value.split('-');
+                const cell = selectElement.parentNode;
+                const day = cell.parentNode.rowIndex - 1;
+                const period = cell.cellIndex - 1;
+                sectionData.timetable[day][period] = [subject, teacher];
+            }
+
+            window.onload = function() {
+                showPCMC();
+            };
+            </script>
+            </body>
+            </html>

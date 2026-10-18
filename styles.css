@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Timetable</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f9f9f9;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .teacher-info {
+            color: #7f8c8d;
+            font-size: 18px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        th, td {
+            padding: 15px;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+        th {
+            background-color: #3498db;
+            color: white;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .break-cell {
+            background-color: #e0e0e0;
+            font-style: italic;
+        }
+        .teacher-class {
+            background-color: #d4efdf;
+            font-weight: bold;
+        }
+        .section-indicator {
+            color: #e74c3c;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Teacher's Timetable</h1>
+        <div class="teacher-info">Welcome, <span id="teacherName"></span></div>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Day/Time</th>
+                <th>9:20 - 10:00</th>
+                <th>10:00 - 10:40</th>
+                <th>10:40 - 11:20</th>
+                <th>11:20 - 11:30</th>
+                <th>11:30 - 12:10</th>
+                <th>12:10 - 12:50</th>
+                <th>12:50 - 1:45</th>
+                <th>1:45 - 2:25</th>
+                <th>2:25 - 3:05</th>
+                <th>3:05 - 3:45</th>
+            </tr>
+        </thead>
+        <tbody id="teacherTimetable">
+            <!-- Will be populated dynamically -->
+        </tbody>
+    </table>
+
+    <script>
+        window.onload = function() {
+            const teacherData = JSON.parse(localStorage.getItem('currentTeacher'));
+            document.getElementById('teacherName').textContent = teacherData.name;
+
+            const tbody = document.getElementById('teacherTimetable');
+            const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+            days.forEach((day, dayIndex) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td>${day}</td>`;
+
+                for (let period = 0; period < 10; period++) {
+                    if (period === 3) {
+                        row.innerHTML += '<td class="break-cell">Short Break</td>';
+                        continue;
+                    }
+                    if (period === 6) {
+                        row.innerHTML += '<td class="break-cell">Lunch Break</td>';
+                        continue;
+                    }
+
+                    let cellContent = '';
+                    let sectionIndicator = '';
+
+                    // Check both schedules for the same period
+                    const pcmcClass = teacherData.pcmcSchedule[dayIndex]?.[period];
+                    const pcmbClass = teacherData.pcmbSchedule[dayIndex]?.[period];
+
+                    if (pcmcClass && pcmbClass && 
+                        pcmcClass[1] === teacherData.name && 
+                        pcmbClass[1] === teacherData.name) {
+                        // Both sections have the same teacher at this time
+                        cellContent = pcmcClass[0];
+                        sectionIndicator = 'PCMC & PCMB';
+                    } else {
+                        // Check individual sections
+                        if (pcmcClass && pcmcClass[1] === teacherData.name) {
+                            cellContent = pcmcClass[0];
+                            sectionIndicator = 'PCMC';
+                        }
+                        if (pcmbClass && pcmbClass[1] === teacherData.name) {
+                            cellContent = pcmbClass[0];
+                            sectionIndicator = 'PCMB';
+                        }
+                    }
+
+                    const displayContent = cellContent ? 
+                        `${cellContent}<br><span class="section-indicator">${sectionIndicator}</span>` : 
+                        '-';
+
+                    row.innerHTML += `<td class="${cellContent ? 'teacher-class' : ''}">${displayContent}</td>`;
+                }
+                tbody.appendChild(row);
+            });
+        };
+
+    </script>
+</body>
+</html>
